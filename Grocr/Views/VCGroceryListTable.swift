@@ -29,14 +29,15 @@
 import UIKit
 import Firebase
 
-class GroceryListTableViewController: UITableViewController {
+class VCGroceryListTable: UITableViewController {
 
   // MARK: Constants
   let listToUsers = "ListToUsers"
   
   // MARK: Properties
-  var items: [GroceryItem] = []
-  var user: User!
+  let ref = Database.database().reference(withPath: "grocery-items")
+  var items: [MGroceryItem] = []
+  var user: MUser!
   var userCountBarButtonItem: UIBarButtonItem!
   
   
@@ -49,6 +50,8 @@ class GroceryListTableViewController: UITableViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
+    self.addObserveGroceryItem()
+    
     tableView.allowsMultipleSelectionDuringEditing = false
     
     userCountBarButtonItem = UIBarButtonItem(title: "1",
@@ -58,7 +61,7 @@ class GroceryListTableViewController: UITableViewController {
     userCountBarButtonItem.tintColor = UIColor.white
     navigationItem.leftBarButtonItem = userCountBarButtonItem
     
-    user = User(uid: "FakeId", email: "hungry@person.food")
+    user = MUser(uid: "FakeId", email: "hungry@person.food")
   }
   
   // MARK: UITableView Delegate methods
@@ -120,13 +123,16 @@ class GroceryListTableViewController: UITableViewController {
                                   preferredStyle: .alert)
     
     let saveAction = UIAlertAction(title: "Save", style: .default) { _ in
-      let textField = alert.textFields![0]
-      
-      let groceryItem = GroceryItem(name: textField.text!,
-                                    addedByUser: self.user.email,
-                                    completed: false)
-      
-      self.items.append(groceryItem)
+      guard let textField = alert.textFields?.first,
+      let text = textField.text else { return }
+        
+      let groceryItem = MGroceryItem(name: text,
+                                     addedByUser: self.user.email,
+                                     completed: false)
+
+      let groceryItemRef = self.ref.child(text.lowercased())
+        
+      groceryItemRef.setValue(groceryItem.toAnyObject())
       self.tableView.reloadData()
     }
     
@@ -144,4 +150,23 @@ class GroceryListTableViewController: UITableViewController {
   @objc func userCountButtonDidTouch() {
     performSegue(withIdentifier: listToUsers, sender: nil)
   }
+}
+
+
+extension VCGroceryListTable {
+    func addObserveGroceryItem () {
+        ref.observe(.value, with: { snapshot in
+            var newItems: [MGroceryItem] = []
+            
+            for child in snapshot.children {
+                if let snapshot = child as? DataSnapshot,
+                    let groceryItem = MGroceryItem(snapshot: snapshot) {
+                    newItems.append(groceryItem)
+                }
+            }
+            
+            self.items = newItems
+            self.tableView.reloadData()
+        })
+    }
 }

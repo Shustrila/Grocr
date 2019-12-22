@@ -29,7 +29,7 @@
 import Foundation
 import Firebase
 
-struct GroceryItem {
+struct MGroceryItem {
   
   let ref: DatabaseReference?
   let key: String

@@ -26,64 +26,21 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 /// THE SOFTWARE.
 
-import UIKit
+import Foundation
 import Firebase
 
-class LoginViewController: UIViewController {
+struct MUser {
   
-  // MARK: Constants
-  let loginToList = "LoginToList"
+  let uid: String
+  let email: String
   
-  // MARK: Outlets
-  @IBOutlet weak var textFieldLoginEmail: UITextField!
-  @IBOutlet weak var textFieldLoginPassword: UITextField!
-  
-  override var preferredStatusBarStyle: UIStatusBarStyle {
-    return .lightContent
+  init(authData: Firebase.User) {
+    uid = authData.uid
+    email = authData.email!
   }
   
-  // MARK: Actions
-  @IBAction func loginDidTouch(_ sender: AnyObject) {
-    performSegue(withIdentifier: loginToList, sender: nil)
-  }
-  
-  @IBAction func signUpDidTouch(_ sender: AnyObject) {
-    let alert = UIAlertController(title: "Register",
-                                  message: "Register",
-                                  preferredStyle: .alert)
-    
-    let saveAction = UIAlertAction(title: "Save", style: .default) { _ in
-    }
-    
-    let cancelAction = UIAlertAction(title: "Cancel",
-                                     style: .cancel)
-    
-    alert.addTextField { textEmail in
-      textEmail.placeholder = "Enter your email"
-    }
-    
-    alert.addTextField { textPassword in
-      textPassword.isSecureTextEntry = true
-      textPassword.placeholder = "Enter your password"
-    }
-    
-    alert.addAction(saveAction)
-    alert.addAction(cancelAction)
-    
-    present(alert, animated: true, completion: nil)
-  }
-  
-}
-
-extension LoginViewController: UITextFieldDelegate {
-  
-  func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-    if textField == textFieldLoginEmail {
-      textFieldLoginPassword.becomeFirstResponder()
-    }
-    if textField == textFieldLoginPassword {
-      textField.resignFirstResponder()
-    }
-    return true
+  init(uid: String, email: String) {
+    self.uid = uid
+    self.email = email
   }
 }
